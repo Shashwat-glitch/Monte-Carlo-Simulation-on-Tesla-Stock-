@@ -1,0 +1,57 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+#Get the dataset
+df = pd.read_csv("TSLA.csv", parse_dates=True, index_col="Date")
+
+#Show the data
+df
+
+#Simulation Parameters
+num_simulations = 1000
+forecast_days = 252   
+
+#Initialize simulation array with all zeros
+simulations = np.zeros((num_simulations, forecast_days))
+
+#Get the last adjusted close price
+last_price = df["Adj Close"][-1]  
+
+#Show the price
+last_price
+
+#Calculate the daily return and drop any NA Values
+daily_returns = df["Adj Close"].pct_change()
+daily_returns.dropna(inplace=True)
+
+
+#Simulation to forecast the future prices
+#Looping through the number of simulations to forecast future prices 
+for i in range(num_simulations):
+  #Get random daily returns for the forecasted days, and calculating their cuulative sum and storing it in a variable
+  cum_returns = np.random.choice(daily_returns, size = forecast_days, replace=True).cumsum()
+  #Calculating the future prices 
+  future_prices = last_price * (1 + cum_returns)
+  #Storing the future prices and the simulations  
+  simulations[i, :] = future_prices
+
+#Print the simulations
+print(simulations)
+
+#Print the 4th simulation and the first 7 values
+print(simulations[3 , 0:7])
+
+#Plot the results AKA all of the simulations 
+plt.figure(figsize = (10,10))
+for i in range(num_simulations):
+  plt.plot(simulations[i], alpha=0.25)
+plt.title("Monte Carlo Simulation of Tesla Stock Prices")
+plt.xlabel("Days")
+plt.ylabel("Price")
+plt.show()
+
+#Calculate the expected future price 
+exp_future_price = np.mean(simulations[:, -1])
+print("Expected Future Price in ", forecast_days, "days", round(exp_future_price, 2))
+
